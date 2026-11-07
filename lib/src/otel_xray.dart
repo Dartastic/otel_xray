@@ -1,13 +1,13 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_xray_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_xray';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 /// Wraps an AWS X-Ray PutTraceSegments call in a PRODUCER span.
 Future<T> tracedXrayPutSegments<T>({
@@ -34,13 +34,13 @@ Future<T> tracedXrayPutSegments<T>({
   final span = _tracer().startSpan(
     'xray PutTraceSegments',
     kind: SpanKind.producer,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final v = await invoke();
     if (rejectedCount != null) {
-      span.addAttributes(OTel.attributes([
-        OTel.attributeInt('aws.xray.rejected_count', rejectedCount),
+      span.addAttributes(OTelAPI.attributes([
+        OTelAPI.attributeInt('aws.xray.rejected_count', rejectedCount),
       ]));
       if (rejectedCount > 0) {
         span.setStatus(
@@ -51,9 +51,9 @@ Future<T> tracedXrayPutSegments<T>({
     }
     return v;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
